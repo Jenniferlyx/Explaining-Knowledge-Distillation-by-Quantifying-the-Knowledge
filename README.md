@@ -13,28 +13,28 @@ Xu Cheng, Zhefan Rao, Yilan Chen, Quanshi Zhang
 
 ## How to Use
 
-You can specify different hyperparameters through command line .
+You can specify different hyperparameters through command line.
 
 1. /train_net/train_net.py                     
 
    - Train the teacher network and the baseline network
-   - Running `python /train_net/train_net.py`
+   - Run `python /train_net/train_net.py`
 
 2. /distillation/distillation.py               
 
    - Use distillation to train the student network
-   - Running `python /distillation/distillation.py --teacher_checkpoint YOUR_CHECKPOINT_DIR`
+   - Run `python /distillation/distillation.py --teacher_checkpoint YOUR_CHECKPOINT_DIR`
 
 3. /sigma/train_sigma.py                     
 
    - Compute the sigma of every epoch during training the model
-   - Running `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
+   - Run `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
 
 4. /sigma/find_knowledge_new.py     
 
    - Use sigma to compute the three metrices in the paper
 
-   - Running `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
+   - Run `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
 
    - You need to change the following paths to your own trained result paths:
 
