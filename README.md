@@ -1,9 +1,7 @@
 
 
 <!-- PROJECT TITLE -->
-<br />
-
-  <h3 align="center">Explaining Knowledge Distillation by Quantifying the Knowledge</h3>
+# Explaining Knowledge Distillation by Quantifying the Knowledge
 
 <!-- ABOUT THE PROJECT -->
 
