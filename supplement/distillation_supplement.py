@@ -128,17 +128,7 @@ def distillation(path,args):
         print("teacher train std", std_train)
         std_val = np.std(teacher_val)
         print("teacher val std", std_val)
-        if args.normalization:
-            teacher_train = teacher_train / std_train
-            teacher_val = teacher_val / std_val
-            print("current train std", np.std(teacher_train))
-            print("current val std", np.std(teacher_val), '\n')
-            if args.mode == 'fc1':
-                args.alpha = 3
-            elif args.mode == 'fc2':
-                args.alpha = 1
-            elif args.mode == 'fc3':
-                args.alpha = 6
+        
 
         ## choose optimizer ##
         optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -186,12 +176,12 @@ def distillation(path,args):
             if args.logspace:
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = logspace_lr[epoch]
-            print("lr", optimizer.param_groups[0]['lr'])
+            
 
             weight_distance_conv, weight_distance_fc1, weight_distance_fc2, weight_distance_fc3 = train_kd(model, optimizer, loss_fn_kd, train_loader, epoch, logger_train_mse, teacher_model, mode=args.mode)
             weight_diff[0, epoch + 1], weight_diff[1, epoch + 1] = weight_distance_conv / w_init_conv, weight_distance_fc1 / w_init_fc1
             weight_diff[2, epoch + 1], weight_diff[3, epoch + 1] = weight_distance_fc2 / w_init_fc2, weight_distance_fc3 / w_init_fc3
-            print(weight_diff[0, epoch+1], weight_diff[1, epoch+1], weight_diff[2, epoch+1], weight_diff[3, epoch+1])
+            
 
             val_loss, val_acc = evaluate_kd(model, val_loader, epoch, logger_val_mse, teacher_model, mode=args.mode)
             if args.scheduler:
@@ -200,14 +190,12 @@ def distillation(path,args):
 
             weight_diff_save_path = save_path + 'weight_diff.npy'.format(args.dataset, args.mode, args.epochs)
             np.save(weight_diff_save_path, weight_diff.numpy())
-        print(weight_diff)
+        
 
         save_dir = save_path + '{}.pth.tar'.format(epoch+1)
         save_checkpoint({'epoch': epoch+1, 'state_dict': model.state_dict(), 'best_acc': val_acc, 'optimizer': optimizer.state_dict()}, save_dir)
 
-    else:
-        model = ResNet50_without_pretrained(out_planes=args.classes, seed=args.seed).cuda(args.gpu)
-        load_checkpoint('./KD/trained_model/distil_resnet50_fc1_CUB_102/150.pth.tar', model)
+    
 
     ## fine-tune model to classify ##
     print('------------fine-tune model to classify is ready!------------\n')
