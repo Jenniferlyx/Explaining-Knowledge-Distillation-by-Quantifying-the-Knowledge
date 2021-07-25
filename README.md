@@ -22,22 +22,22 @@ You can specify different hyperparameters through command line.
 
 1. /train_net/train_net.py                     
 
-   - Train the teacher network and the baseline network
+   - Train the teacher network or the baseline network
    - Run `python /train_net/train_net.py`
 
 2. /distillation/distillation.py               
 
-   - Use distillation to train the student network
+   - Use knowledge distillation to train the student network
    - Run `python /distillation/distillation.py --teacher_checkpoint YOUR_CHECKPOINT_DIR`
 
 3. /sigma/train_sigma.py                     
 
-   - Compute the sigma of every epoch during training the model
+   - Compute the information discarding
    - Run `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
 
 4. /sigma/find_knowledge_new.py     
 
-   - Use sigma to compute the three metrices in the paper
+   - Compute the three type of metrices in the paper
 
    - Run `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
 
@@ -69,7 +69,7 @@ You can specify different hyperparameters through command line.
 
 8. /supplement                                     
 
-   - A supplement for training net and distillation
+   - To train a teacher from scratch
 
 
 ## Citation
