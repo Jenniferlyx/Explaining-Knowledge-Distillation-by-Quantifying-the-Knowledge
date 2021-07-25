@@ -140,12 +140,12 @@ def train_network(PATH, args):
             for param_group in optimizer.param_groups:
                 param_group['lr'] = logspace_lr[epoch]
         lr = get_learning_rate(optimizer)
-        print("lr:", lr)
+       
 
         weight_distance_conv, weight_distance_fc1, weight_distance_fc2, weight_distance_fc3 = train(train_loader, model, criterion, optimizer, epoch, logger_train)
         weight_diff[0, epoch + 1], weight_diff[1, epoch + 1] = weight_distance_conv / w_init_conv, weight_distance_fc1 / w_init_fc1
         weight_diff[2, epoch + 1], weight_diff[3, epoch + 1] = weight_distance_fc2 / w_init_fc2, weight_distance_fc3 / w_init_fc3
-        print(weight_diff[0, epoch+1], weight_diff[1, epoch+1], weight_diff[2, epoch+1], weight_diff[3, epoch+1])
+       
 
         acc1, val_loss = validate(val_loader, model, criterion, epoch, logger_val)
         if args.scheduler:
@@ -153,7 +153,7 @@ def train_network(PATH, args):
 
         weight_diff_save_path = PATH + 'weight_diff.npy'
         np.save(weight_diff_save_path, weight_diff.numpy())
-    print(weight_diff)
+
 
     save_dir = PATH + '{}.pth.tar'.format(epoch+1)
     best_acc1 = max(acc1, best_acc1)
