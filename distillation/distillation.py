@@ -27,23 +27,23 @@ from function.dataset import *
 from function.logger import Logger
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--mode", type=str, default="conv") ## fc1 fc2 fc3 softmax ##
-parser.add_argument("--model", type=str, default="resnet152") ## vgg11 vgg16 vgg19 resnet50 resnet101 resnet152 ##
+parser.add_argument("--mode", type=str, default="fc1") ## fc1 fc2 fc3 ##
+parser.add_argument("--model", type=str, default="vgg16") ## vgg11 vgg16 vgg19 resnet50 resnet101 resnet152 ##
 parser.add_argument("--distilation_train", type=bool, default=True)
 parser.add_argument("--classifier_train", type=bool, default=True)
-parser.add_argument("--date", type=str, default="0415")
+parser.add_argument("--date", type=str, default="_")
 parser.add_argument("--lr", type=float, default=1, help="learning rate")
 parser.add_argument("--lr_down", type=int, default=1, help="learning rate")
 parser.add_argument('--logspace', default=False, type=bool)
-parser.add_argument('--teacher_checkpoint', default='./KD/trained_model/ILSVRC_resnet152_pretrain_1029/150.pth.tar', type=str, metavar='PATH')
-parser.add_argument('--normalization', default=False, type=bool, help='whether to normalize the output of teacher')
+parser.add_argument('--teacher_checkpoint', default='./', type=str, metavar='PATH')
+parser.add_argument('--normalization', default=False, type=bool, help='whether to normalize the output of teacher')# no use
 parser.add_argument('--alpha', default=1, type=float)   # adjust mse loss ##
-parser.add_argument("--batch_size", type=int, default=38, help="batch size")
+parser.add_argument("--batch_size", type=int, default=64, help="batch size")
 parser.add_argument("--epochs", type=int, default=150, help="number of distillation training iterations")
 parser.add_argument("--classify_epochs", type=int, default=100, help="number of classifier training iterations")
 parser.add_argument("--start_epoch", type=int, default=0)
-parser.add_argument('--dataset', default='ILSVRC', type=str)
-parser.add_argument('--classes', default=12, type=int)
+parser.add_argument('--dataset', default='CUB', type=str)
+parser.add_argument('--classes', default=200, type=int)
 parser.add_argument('--workers', default=8, type=int)
 parser.add_argument('--seed', default=0, type=int)
 parser.add_argument("--weight_decay", type=float, default=1e-4, help="weight decay")
@@ -124,21 +124,6 @@ def distillation(path,args):
         print("\nget teacher val")
         teacher_val = fetch_teacher_outputs(teacher_model=teacher_model, dataloader=val_loader, model=args.model, mode=args.mode, classes=args.classes)
 
-        std_train = np.std(teacher_train)
-        print("teacher train std", std_train)
-        std_val = np.std(teacher_val)
-        print("teacher val std", std_val)
-        if args.normalization:
-            teacher_train = teacher_train / std_train
-            teacher_val = teacher_val / std_val
-            print("current train std", np.std(teacher_train))
-            print("current val std", np.std(teacher_val), '\n')
-            if args.mode == 'fc1':
-                args.alpha = 3
-            elif args.mode == 'fc2':
-                args.alpha = 1
-            elif args.mode == 'fc3':
-                args.alpha = 6
 
         ## choose optimizer ##
         optimizer = torch.optim.SGD(model.parameters(), args.lr, momentum=args.momentum, weight_decay=args.weight_decay)
@@ -185,19 +170,19 @@ def distillation(path,args):
             if args.logspace:
                 for param_group in optimizer.param_groups:
                     param_group['lr'] = logspace_lr[epoch]
-            print("lr", optimizer.param_groups[0]['lr'])
+            
 
             weight_distance_conv, weight_distance_fc1, weight_distance_fc2, weight_distance_fc3 = train_kd(model, optimizer, loss_fn_kd, train_loader, epoch, logger_train_mse, teacher_model, mode=args.mode)
             weight_diff[0, epoch + 1], weight_diff[1, epoch + 1] = weight_distance_conv / w_init_conv, weight_distance_fc1 / w_init_fc1
             weight_diff[2, epoch + 1], weight_diff[3, epoch + 1] = weight_distance_fc2 / w_init_fc2, weight_distance_fc3 / w_init_fc3
-            print(weight_diff[0, epoch+1], weight_diff[1, epoch+1], weight_diff[2, epoch+1], weight_diff[3, epoch+1])
+           
 
             val_loss, val_acc = evaluate_kd(model, val_loader, epoch, logger_val_mse, teacher_model, mode=args.mode)
             torch.cuda.empty_cache()
 
             weight_diff_save_path = save_path + 'weight_diff.npy'.format(args.dataset, args.mode, args.epochs)
             np.save(weight_diff_save_path, weight_diff.numpy())
-        print(weight_diff)
+        
 
         if args.save_per_epoch:
             save_dir = save_path + '{}.pth.tar'.format(epoch+1)
@@ -205,9 +190,7 @@ def distillation(path,args):
             save_dir = save_path + '{}_{}_{}.pth.tar'.format(args.dataset, args.mode, args.epochs)
         save_checkpoint({'epoch': epoch+1, 'state_dict': model.state_dict(), 'best_acc': val_acc, 'optimizer': optimizer.state_dict()}, save_dir)
 
-    else:
-        model = ResNet50_without_pretrained(out_planes=args.classes, seed=args.seed).cuda(args.gpu)
-        load_checkpoint('./KD/trained_model/distil_resnet50_fc1_CUB_102/150.pth.tar', model)
+    
 
     ## fine-tune model to classify ##
     print('------------fine-tune model to classify is ready!------------\n')
@@ -271,7 +254,7 @@ def distillation(path,args):
                 optimizer = torch.optim.SGD(model.net.fc[-1].parameters(), 1e-2, momentum=args.momentum, weight_decay=args.weight_decay)
             else:
                 sys.exit('Layer Name Error')
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=10, verbose=False)
+        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.3, patience=10, verbose=False) # you can change other lr settings
 
         train_ce_logger_path = path + 'logs/{}_{}_distil_{}_{}/train_ce'.format(args.dataset, args.model, args.mode, args.date)
         val_ce_logger_path = path + 'logs/{}_{}_distil_{}_{}/val_ce'.format(args.dataset, args.model, args.mode, args.date)
