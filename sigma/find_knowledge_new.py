@@ -13,7 +13,6 @@
 
  6. find percent: used to find knowledge points in the last checkpoints / all checkpoints;
 
- 7. find parameter diff: used to compare parameter diff of different models.
 
 '''
 
@@ -41,8 +40,6 @@ FIND_PEAK = False              # find every peak's influence ##
 FIND_CONVERGENCE = True
 FIND_PERCENT = False
 
-FIND_PARAMETER_DIFF = False
-FIND_SIGMA_F_DIFF = False
 image_size = 224
 checkpoint_step = 3
 PEAK_SIZE = 1
@@ -509,112 +506,6 @@ def entropy(sigma):
     entropy = torch.log(sigma) + 0.5 * torch.log(torch.tensor(2 * math.pi * math.e))
     return entropy
 
-def compare(x,y,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy):
-    x = int(x)  # x indicates row
-    y = int(y)  # y indicates col
-    position_ch = int(x * sigma_size + y)
-    point_pos[position_ch][2] = x  #record this point's x and y
-    point_pos[position_ch][3] = y
-
-
-    while flag[position_ch].any() ==True :
-        if point_pos[position_ch][0] == 0:
-            point_pos[position_ch][0] = m
-            point_pos[position_ch][1] = iternum
-        else:
-            if iternum < point_pos[position_ch][1]:
-                point_pos[position_ch][0] = m
-                point_pos[position_ch][1] = iternum
-        iternum += 1
-        if x >= 0 and x <= sigma_size-1  and y >= 0 and y <= sigma_size-1:
-            if x == 0:
-                flag[position_ch][0] = 0
-                flag[position_ch][2] = 0
-                flag[position_ch][3] = 0
-            if x == sigma_size-1 :
-                flag[position_ch][1] = 0
-                flag[position_ch][2] = 0
-                flag[position_ch][0] = 0
-            if y == 0:
-                flag[position_ch][0] = 0
-                flag[position_ch][1] = 0
-                flag[position_ch][3] = 0
-            if y == sigma_size-1 :
-                flag[position_ch][3] = 0
-                flag[position_ch][1] = 0
-                flag[position_ch][2] = 0
-
-            if flag[position_ch][0] > 0:
-                if whole_pic_entropy[x,y]<= whole_pic_entropy[x-1,y-1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x+1,y-1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x,y-1] :
-                    flag[position_ch][0] = 0 #left
-
-                else:
-                    flag[(x-1)*sigma_size+y-1][2] = 0
-                    flag[(x+1)*sigma_size+y-1][2] = 0
-                    flag[(x)*sigma_size+y-1][2] = 0
-                    compare(x,y-1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x-1,y-1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x+1,y-1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-
-                if flag[(x-1)*sigma_size+y-1].any() ==False and flag[(x+1)*sigma_size+y-1].any() ==False and flag[(x)*sigma_size+y-1].any() ==False:
-                    flag[position_ch][0]=0
-
-            if flag[position_ch][1] >0:
-                if whole_pic_entropy[x,y]<= whole_pic_entropy[x+1,y-1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x+1,y] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x+1,y+1]:
-                    flag[position_ch][1] = 0 #down
-
-                else:
-                    flag[(x+1)*sigma_size+y-1][3] = 0
-                    flag[(x+1)*sigma_size+y][3] = 0
-                    flag[(x+1)*sigma_size+y+1][3] = 0
-                    compare(x+1,y,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x+1,y-1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x+1,y+1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-
-                if flag[(x+1)*sigma_size+y-1].any() ==False and flag[(x+1)*sigma_size+y].any() ==False and flag[(x+1)*sigma_size+y+1].any() ==False:
-                    flag[position_ch][1]=0
-
-
-            if flag[position_ch][2] >0:
-                if whole_pic_entropy[x,y]<= whole_pic_entropy[x+1,y+1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x-1,y+1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x,y+1]:
-                    flag[position_ch][2] = 0 #right
-
-                else:
-                    flag[(x+1)*sigma_size+y+1][0] = 0
-                    flag[(x-1)*sigma_size+y+1][0] = 0
-                    flag[(x)*sigma_size+y+1][0] = 0
-                    compare(x,y+1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x+1,y+1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x-1,y+1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-
-                if flag[(x-1)*sigma_size+y+1].any() ==False and flag[(x+1)*sigma_size+y+1].any() ==False and flag[(x)*sigma_size+y+1].any() ==False:
-                    flag[position_ch][2]=0
-
-            if flag[position_ch][3] >0:
-                if whole_pic_entropy[x,y]<= whole_pic_entropy[x-1,y+1] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x-1,y] \
-                        or whole_pic_entropy[x,y]<= whole_pic_entropy[x-1,y-1]:
-                    flag[position_ch][3] = 0 #up
-
-                else:
-                    flag[(x-1)*sigma_size+y+1][1] = 0
-                    flag[(x-1)*sigma_size+y][1]= 0
-                    flag[(x-1)*sigma_size+y-1][1] = 0
-                    compare(x-1,y,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x-1,y+1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-                    compare(x-1,y-1,flag,m,iternum,sigma_size,point_pos,whole_pic_entropy)
-
-                if flag[(x-1)*sigma_size+y-1].any() ==False and flag[(x-1)*sigma_size+y].any() ==False and flag[(x-1)*sigma_size+y+1].any() ==False:
-                    flag[position_ch][3]=0
-
-    return point_pos
-
 
 def find_convergence(img_names, sigma_size, threshold, downsample_size, total_background_mean, teahcer_checkpoint_path, label_checkpoint_path, distil_checkpoint_path, layer, submode, counter):
 
@@ -918,63 +809,6 @@ def find_percent(img_names,sigma_size,threshold,downsample_size,total_background
     print("knowledge percent calculated complete!")
 
 
-def find_parameter_diff():
-    save_root = sigma_root + '/find_parameter_diff/'
-    if not os.path.exists(save_root):
-        os.mkdir(save_root)
-
-    student_path = './KD/trained_model/student_908_CUB/weight_diff.npy'
-    vgg16_fc1_path = './KD/trained_model/distil_vgg16_fc1_CUB_908/weight_diff.npy'
-    vgg16_fc2_path = './KD/trained_model/distil_vgg16_fc2_CUB_908/weight_diff.npy'
-    vgg16_fc3_path = './KD/trained_model/distil_vgg16_fc3_CUB_908/weight_diff.npy'
-    student_diff = np.load(student_path)
-    vgg16_fc1_diff = np.load(vgg16_fc1_path)
-    vgg16_fc2_diff = np.load(vgg16_fc2_path)
-    vgg16_fc3_diff = np.load(vgg16_fc3_path)
-
-    model_num = 4
-    ## plot curves ##
-    color = iter(plt.cm.rainbow(np.linspace(0, 1, model_num)))
-    plt.plot(np.arange(student_diff.shape[0]), student_diff, color=next(color), label='label_net')
-    plt.plot(np.arange(vgg16_fc1_diff.shape[0]), vgg16_fc1_diff, color=next(color), label='distil_net_fc1_vgg16')
-    plt.plot(np.arange(vgg16_fc2_diff.shape[0]), vgg16_fc2_diff, color=next(color), label='distil_net_fc2_vgg16')
-    plt.plot(np.arange(vgg16_fc3_diff.shape[0]), vgg16_fc3_diff, color=next(color), label='distil_net_fc3_vgg16')
-    plt.legend()
-    plt.xlabel('model epochs')
-    plt.ylabel('parameter diff')
-    title = 'Parameter Difference with Initialization '
-    plt.title(title)
-    img_name = save_root + 'sigma_entropy_convergence.jpg'
-    plt.savefig(img_name)
-    print("plot complete!")
-
-
-def find_sigma_f_diff():
-    save_root = './KD/npy_files/sigma_f/'
-    if not os.path.exists(save_root):
-        os.mkdir(save_root)
-
-    student_path = './KD/npy_files/sigma_f/CUB_student_up_pick_3.0_904/sigma_f.npy'
-    vgg16_fc1_path = './KD/npy_files/sigma_f/CUB_distil_fc1_up_pick_3.0_908_fc1'
-    vgg16_fc2_path = './KD/npy_files/sigma_f/CUB_distil_fc2_up_pick_3.0_908_fc2'
-    student = np.load(student_path).flatten()
-    vgg16_fc1 = np.load(vgg16_fc1_path).flatten()
-    vgg16_fc2 = np.load(vgg16_fc2_path).flatten()
-
-    model_num = 4
-    ## plot curves ##
-    color = iter(plt.cm.rainbow(np.linspace(0, 1, model_num)))
-    plt.plot(np.arange(student.shape[0]) * checkpoint_step, student, color=next(color), label='label_net')
-    plt.plot(np.arange(vgg16_fc1.shape[0]) * checkpoint_step, vgg16_fc1, color=next(color), label='distil_net_fc1_vgg16')
-    plt.plot(np.arange(vgg16_fc2.shape[0]) * checkpoint_step, vgg16_fc2, color=next(color), label='distil_net_fc1_vgg16')
-    plt.legend()
-    plt.xlabel('model epochs')
-    plt.ylabel('sigma_f')
-    title = 'sigma_f of different models '
-    plt.title(title)
-    img_name = save_root + 'sigma_f_compare.jpg'
-    plt.savefig(img_name)
-    print("plot complete!")
 
 
 def choose_ckpt_list(ckpt_root):
@@ -1065,11 +899,7 @@ for THRESHOLD in [0.2]:
             if FIND_PERCENT:
                 find_percent(img_names, sigma_size, THRESHOLD, downsample_size, total_background_mean, counter)
 
-            if FIND_PARAMETER_DIFF:
-                find_parameter_diff()
-
-            if FIND_SIGMA_F_DIFF:
-                find_sigma_f_diff()
+            
 
             fw.write('***************************' + '\n' + '\n')
             fw.close()
