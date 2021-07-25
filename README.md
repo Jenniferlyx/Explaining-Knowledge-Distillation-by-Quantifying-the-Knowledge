@@ -39,16 +39,14 @@ You can specify different hyperparameters through command line.
 
    - Compute the three type of metrices in the paper
 
-   - Run `python /sigma/find_knowledge_new.py --checkpoint_root YOUR_CHECKPOINT_DIR`
+   - Run `python /sigma/find_knowledge_new.py`
 
    - You need to change the following paths to your own trained result paths:
 
-     ```python
+     ```
      model_name = 'vgg16'
      layer = 'conv'
-     date = '0514'
-     teacher_sigma_root = './KD/sigma_result/CUB_vgg16_teacher_conv_0201/'
-     teahcer_checkpoint_path = './KD/trained_model/CUB_vgg16_pretrain_106/'
+     date = '0415'
      label_sigma_root = './KD/sigma_result/ILSVRC_vgg16_label_net_conv_0415/'
      distil_sigma_root = './KD/sigma_result/ILSVRC_vgg16_distil_net_conv_0415/'
      label_checkpoint_path = './KD/trained_model/ILSVRC_vgg16_without_pretrain_1018/'
