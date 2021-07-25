@@ -30,7 +30,7 @@ parser.add_argument("--model", type=str, default="alexnet")
 parser.add_argument("--mode", type=str, default="label_net") ## teacher or label net or distil net  ##
 parser.add_argument("--date", type=str, default="0415")
 parser.add_argument("--capacity_layer", type=str, default='conv', help=" conv, fc1, fc2, fc3, all, distil_all")
-parser.add_argument('--checkpoint_root', default='./KD/trained_model/VOC_alexnet_without_pretrain_1013/', type=str)
+parser.add_argument('--checkpoint_root', default='./', type=str)
 parser.add_argument('--checkpoint_step', default=3, type=int) ## the step for checkpoint ##
 parser.add_argument('--dataset', default='VOC', type=str)
 parser.add_argument('--classes', default=20, type=int)
@@ -503,13 +503,6 @@ if args.capacity_layer == 'all':
     for layer in ['fc1', 'fc2']:
         print('capacity layer: ', layer)
         train_sigma(path, args, capacity_layer=layer, checkpoint_root=args.checkpoint_root)
-elif args.capacity_layer == 'distil_all':
-    distil_fc1 = './KD/trained_model/distil_resnet101_fc1_CUB_106_1-1/'
-    distil_fc2 = './KD/trained_model/distil_resnet101_fc2_CUB_106_1-1/'
-    distil_fc3 = './KD/trained_model/distil_resnet101_fc3_CUB_106_-2/'
-    for layer, check_root in [('fc1', distil_fc1), ('fc2', distil_fc2), ('fc3', distil_fc3)]:
-        print('capacity layer: ', layer)
-        train_sigma(path, args, capacity_layer=layer, checkpoint_root=check_root)
 else:
     print('capacity layer: ', args.capacity_layer)
     train_sigma(path, args, capacity_layer=args.capacity_layer, checkpoint_root=args.checkpoint_root)
