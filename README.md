@@ -41,7 +41,7 @@ You can specify different hyperparameters through command line.
 
    - Run `python /sigma/find_knowledge_new.py`
 
-   - You need to change the following paths to your own trained result paths:
+   - You need to change the following paths to your own trained result paths, e.g.
 
      ```
      model_name = 'vgg16'
@@ -63,11 +63,12 @@ You can specify different hyperparameters through command line.
 
 7. /function/logger.py                          
 
-   - Logger class, used to record the intermediate result during training, such as loss and accuracy
+   - Logger class, which is used to record the intermediate result during training, such as loss and accuracy
 
-8. /supplement                                     
+8. /supplement/train_net_supplement.py                                   
 
    - To train a teacher from scratch
+   - Run `python /supplement/train_net_supplement.py`
 
 
 ## Citation
