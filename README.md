@@ -10,6 +10,11 @@ Here is the code for our paper: [Explaining Knowledge Distillation by Quantifyin
 Xu Cheng, Zhefan Rao, Yilan Chen, Quanshi Zhang
 
 <!-- GETTING STARTED -->
+## Requirements
+
+- python
+- pytorch
+- torchvision
 
 ## How to Use
 
@@ -65,7 +70,6 @@ You can specify different hyperparameters through command line.
 8. /supplement                                     
 
    - A supplement for training net and distillation
-
 
 
 ## Citation
