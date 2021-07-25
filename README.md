@@ -39,7 +39,7 @@ You can specify different hyperparameters through command line.
 
    - Compute the three type of metrices in the paper
 
-   - Run `python /sigma/train_sigma.py --checkpoint_root YOUR_CHECKPOINT_DIR`
+   - Run `python /sigma/find_knowledge_new.py --checkpoint_root YOUR_CHECKPOINT_DIR`
 
    - You need to change the following paths to your own trained result paths:
 
