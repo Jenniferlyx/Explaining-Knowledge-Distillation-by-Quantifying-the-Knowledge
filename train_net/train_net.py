@@ -27,8 +27,8 @@ from function.logger import Logger
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--model", type=str, default="vgg16")
-parser.add_argument("--mode", type=str, default="_without_pretrain", help="please add '_' before the mode")
-parser.add_argument("--date", type=str, default="_0415", help="please add '_' before the date")
+parser.add_argument("--mode", type=str, default="", help="please add '_' before the mode")
+parser.add_argument("--date", type=str, default="", help="please add '_' before the date")
 parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
 parser.add_argument("--lr_down", type=int, default=1, help="learning rate")
 parser.add_argument('--logspace', default=True, type=bool)
@@ -40,7 +40,6 @@ parser.add_argument('--workers', default=8, type=int)
 parser.add_argument('--seed', default=0, type=int)
 parser.add_argument("--weight_decay", type=float, default=1e-4, help="weight decay")
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M')
-parser.add_argument('--gpu', default=0, type=int, help='Set it to 0. Change it above before importing torch.')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N')
 parser.add_argument('--print-freq', '-p', default=30, type=int, metavar='N')
 parser.add_argument('--save_per_epoch', default=True, type=bool)
@@ -156,7 +155,7 @@ def train_network(PATH, args):
     logger_train = Logger(train_logger_path)
     logger_val = Logger(val_logger_path)
 
-    if args.resume:
+    if args.resume: #we don't prefer to use this 
         if os.path.isfile(args.resume):
             print("=> loading checkpoint '{}'".format(args.resume))
             checkpoint = torch.load(args.resume)
@@ -191,7 +190,7 @@ def train_network(PATH, args):
             for param_group in optimizer.param_groups:
                 param_group['lr'] = logspace_lr[epoch]
         lr = get_learning_rate(optimizer)
-        print("lr:", lr)
+     
 
         weight_distance_conv, weight_distance_fc1, weight_distance_fc2, weight_distance_fc3 = train(train_loader, model, criterion, optimizer, epoch, logger_train)
         weight_diff[0, epoch + 1], weight_diff[1, epoch + 1] = weight_distance_conv / w_init_conv, weight_distance_fc1 / w_init_fc1
@@ -203,7 +202,7 @@ def train_network(PATH, args):
 
         weight_diff_save_path = PATH + 'weight_diff.npy'
         np.save(weight_diff_save_path, weight_diff.numpy())
-    print(weight_diff)
+   
 
     if args.save_per_epoch:
         save_dir = PATH + '{}.pth.tar'.format(epoch+1)
